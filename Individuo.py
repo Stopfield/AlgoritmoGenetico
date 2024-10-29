@@ -52,16 +52,3 @@ class Individuo:
 
     def __repr__(self) -> str:
         return f'Indivíduo {self.label}'
-
-# Definição do Indivíduo
-max = 10
-min = -10
-precision = 4
-num_bits = math.ceil(math.log2((max - min) * 10 ** precision))
-
-a = Individuo(
-    x=BitArray(uint=0, length=num_bits),
-    y=BitArray(uint=0, length=num_bits),
-    min=min,
-    max=max,
-)

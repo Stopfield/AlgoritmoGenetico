@@ -33,16 +33,9 @@ class Ambiente:
 
         self.num_bits = math.ceil(math.log2((max - min) * 10**precision))
         self.population: list[tuple[Individuo, FitnessFloat | None]] = []
-        self.best_individuals = []
-        self.binary_matrix = []
-        # self.best_individuals = {
-        #     "generation": 1,
-        #     "individual": 
-        # }
-        # self.binary_matrix = {
-        #     "generation": 10,
-        #     "Matrice": [BitArray]
-        # }
+        self.best_individuals: list[dict[str, any]] = []
+        self.binary_matrix: list[dict[str, any]] = []
+
 
     def run(self):
         """Executa o algoritmo genético"""
@@ -51,11 +44,11 @@ class Ambiente:
         new_population: list[tuple[Individuo, FitnessFloat | None]] = []
         gen = 0
         while gen < self.generation_threshold:
-            self.save_info(generation)
             print(f"Geração {gen}")
             # Avalia população antiga
             print("* Avaliando populaçao...")
             self.evaluate_population(self.population)
+            self.save_info(gen)
 
             # Resetar a nova
             new_population.clear()
@@ -78,7 +71,9 @@ class Ambiente:
         print(f"Geração {gen}")
         print("* Avaliando populaçao...")
         self.evaluate_population(self.population)
+        self.save_info(gen)
         print("Fim do Algoritmo")
+
 
     def generate_random_population(self) -> list[tuple[Individuo, FitnessFloat | None]]:
         """Gera uma população aleatória para o Ambiente"""
@@ -94,6 +89,7 @@ class Ambiente:
             )
         assert len(new_population) == self.population_size
         return new_population
+
 
     def select_couple(
         self, population: list[tuple[Individuo, FitnessFloat | None]]
@@ -143,6 +139,7 @@ class Ambiente:
         # Retorna os indivíduos
         return (population[a_index], population[b_index])
 
+
     def evaluate_population(
         self, population: list[tuple[Individuo, FitnessFloat | None]]
     ):
@@ -154,6 +151,7 @@ class Ambiente:
                 self.fitness(individual.decode_x(), individual.decode_y()),
             )
         assert all([i[1] is not None for i in population])
+
 
     def cross_individuals(self, a: Individuo, b: Individuo) -> tuple[Individuo, Individuo]:
         """Cruza dois indivíduos e gera outro. Aplica Crossing-Over e Mutation"""
@@ -190,6 +188,7 @@ class Ambiente:
 
         return (a, b)
 
+
     def mutate_individual(self, a: Individuo):
         """Muta um indivíduo. Aplica a taxa de mutação em cada bit"""
         a_whole_gene = a.get_whole_gene()
@@ -199,6 +198,7 @@ class Ambiente:
         a.x = a_whole_gene[0:self.num_bits].copy()
         a.y = a_whole_gene[self.num_bits:].copy()
 
+
     def get_best_individual(self, population: list[tuple[Individuo, FitnessFloat | None]]) -> tuple[Individuo, FitnessFloat | None]:
         assert all(
             [i[1] is not None for i in population]
@@ -207,20 +207,20 @@ class Ambiente:
         individual = max(enumerate(population_fitness), key=lambda x: x[1])
         return self.population[individual[0]]
 
+
     def save_info(self, generation: int) -> None:
         """Salva informações para análise. Melhor indivíduo de cada geração e matriz binária."""
-        self.get_best_individual(self.population)
         self.best_individuals.append(
             {
                 "generation": generation,
-                "individual": individual
+                "individual": self.get_best_individual(self.population)[0],
+                "fitness": self.get_best_individual(self.population)[1],
             }
         )
-        if generation // 10 == 0:
+        if generation % 10 == 0:
             self.binary_matrix.append(
                 {
                     "generation": generation,
-                    "matrice": [i.get_whole_gene() for i, _ in self.population]
+                    "matrice": [i.get_whole_gene().bin for i, _ in self.population]
                 }
             )
-        ...
